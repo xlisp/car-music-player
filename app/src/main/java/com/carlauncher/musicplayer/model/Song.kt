@@ -57,7 +57,8 @@ enum class MusicCategory(val displayName: String, val artists: Set<String>) {
         "周慧敏", "林忆莲", "周启生", "谢霆锋", "侧田", "薛凯琪",
         "卫兰", "连诗雅", "林奕匡", "梁咏琪", "李幸倪", "达明一派",
         "黄耀明", "刘小慧", "郑中基", "卢冠廷", "莫文蔚", "王菲",
-        "aga", "mc 张天赋", "阿梨粤", "陈小春", "twins"
+        "aga", "mc 张天赋", "阿梨粤", "陈小春", "twins",
+        "陈百强", "邓瑞霞"
     )),
     NOSTALGIC("怀旧金曲", setOf(
         "邓丽君", "蔡琴", "韩宝仪", "费玉清", "高胜美", "龙飘飘",
@@ -70,7 +71,9 @@ enum class MusicCategory(val displayName: String, val artists: Set<String>) {
         "孟庭苇", "张洪量", "老狼", "张明敏", "郑绪岚", "唐朝乐队",
         "黑豹乐队", "左宏元", "张慧清", "李春波", "高林生", "高枫",
         "江涛", "江珊", "满文军", "孙浩", "戴军", "林依轮", "张真",
-        "光头李进", "火风", "陈琳", "文章", "谢东", "李琛", "杨林"
+        "光头李进", "火风", "陈琳", "文章", "谢东", "李琛", "杨林",
+        "黄安", "迟志强", "付笛声", "任静", "郁钧剑", "叶启田",
+        "尹相杰", "于文华", "阿炳"
     )),
     CHINESE_POP("华语流行", setOf(
         "周华健", "张信哲", "庾澄庆", "伍佰", "任贤齐", "李宗盛",
@@ -102,7 +105,10 @@ enum class MusicCategory(val displayName: String, val artists: Set<String>) {
         "朱铭捷", "金润吉", "徐良", "徐薇", "徐誉滕", "李天华",
         "李梦瑶", "李玉刚", "李玲玉", "王宇宙", "周柯宇", "王强",
         "赵洋", "郭欢", "郭美美", "彭家丽", "成龙", "js", "t.r.y.",
-        "try", "双笙", "陈元汐", "品冠", "孙楠", "许佳慧"
+        "try", "双笙", "陈元汐", "品冠", "孙楠", "许佳慧",
+        "蔡健雅", "陈雪凝", "陈鸿宇", "许嵩", "光良", "毛不易",
+        "李健", "海鸣威", "黄鹤翔", "宇桐非", "黄静美", "罗百吉",
+        "a-lin", "办桌二人组", "郑铭辰", "莫斯满", "童珺", "梦涵"
     )),
     WESTERN("欧美金曲", setOf(
         "taylor swift", "the beatles", "michael jackson", "adele",
@@ -112,7 +118,8 @@ enum class MusicCategory(val displayName: String, val artists: Set<String>) {
         "groove coverage", "emilia", "rick astley", "ricky martin",
         "george benson", "danny mc carthy", "em beihold",
         "richard clayderman", "lionel richie", "usher", "blue",
-        "vangelis", "beyoncé", "helene", "ailee", "wonder girls"
+        "vangelis", "beyoncé", "helene", "ailee", "wonder girls",
+        "the righteous brothers", "modern talking"
     )),
     OTHER("其他", setOf());
 
