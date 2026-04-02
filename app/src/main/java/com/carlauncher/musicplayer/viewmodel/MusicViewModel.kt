@@ -8,7 +8,9 @@ import androidx.lifecycle.viewModelScope
 import com.carlauncher.musicplayer.model.*
 import com.carlauncher.musicplayer.repository.MusicRepository
 import com.carlauncher.musicplayer.repository.PlayHistoryManager
+import com.carlauncher.musicplayer.db.TodoEntity
 import com.carlauncher.musicplayer.repository.PlaylistRepository
+import com.carlauncher.musicplayer.repository.TodoRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -18,6 +20,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     val repository = MusicRepository(application)
     val playHistoryManager = PlayHistoryManager(application)
     val playlistRepository = PlaylistRepository(application)
+    val todoRepository = TodoRepository(application)
 
     // 所有歌曲
     private val _allSongs = MutableLiveData<List<Song>>(emptyList())
@@ -53,6 +56,10 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     // 播放列表中的歌曲
     private val _playlistSongs = MutableLiveData<List<Song>>(emptyList())
     val playlistSongs: LiveData<List<Song>> = _playlistSongs
+
+    // TODO 列表
+    private val _todos = MutableLiveData<List<TodoEntity>>(emptyList())
+    val todos: LiveData<List<TodoEntity>> = _todos
 
     // 当前播放的歌曲
     private val _currentPlayingSong = MutableLiveData<Song?>()
@@ -313,6 +320,61 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         val songs = _playlistSongs.value ?: return
         if (songs.isEmpty()) return
         onPlayRequest?.invoke(songs, 0)
+    }
+
+    // ========== TODO 记事本 ==========
+
+    fun loadTodos() {
+        viewModelScope.launch {
+            _todos.value = withContext(Dispatchers.IO) {
+                todoRepository.getAll()
+            }
+        }
+    }
+
+    fun addTodo(content: String) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                todoRepository.add(content)
+            }
+            loadTodos()
+        }
+    }
+
+    fun updateTodoContent(id: Long, content: String) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                todoRepository.updateContent(id, content)
+            }
+            loadTodos()
+        }
+    }
+
+    fun toggleTodoDone(id: Long, done: Boolean) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                todoRepository.toggleDone(id, done)
+            }
+            loadTodos()
+        }
+    }
+
+    fun deleteTodo(id: Long) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                todoRepository.delete(id)
+            }
+            loadTodos()
+        }
+    }
+
+    fun clearDoneTodos() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                todoRepository.clearDone()
+            }
+            loadTodos()
+        }
     }
 
     /**

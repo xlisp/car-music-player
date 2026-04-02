@@ -34,4 +34,12 @@
     <string name="btn_confirm">确定</string>
     <string name="btn_delete">删除</string>
     <string name="btn_rename">重命名</string>
+
+    <string name="tab_todo">待下载</string>
+    <string name="todo_add_hint">输入想下载的歌曲…</string>
+    <string name="todo_add_title">添加待下载</string>
+    <string name="todo_edit_title">编辑</string>
+    <string name="todo_empty">还没有待下载的歌曲\n点击 + 添加</string>
+    <string name="todo_clear_done">清除已完成</string>
+    <string name="todo_clear_done_confirm">确定清除所有已完成的项目吗？</string>
 </resources>

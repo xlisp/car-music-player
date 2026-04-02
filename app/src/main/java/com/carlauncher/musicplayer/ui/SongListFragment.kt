@@ -19,6 +19,7 @@ import com.carlauncher.musicplayer.adapter.CategoryAdapter
 import com.carlauncher.musicplayer.adapter.MostPlayedAdapter
 import com.carlauncher.musicplayer.adapter.PlaylistAdapter
 import com.carlauncher.musicplayer.adapter.SongAdapter
+import com.carlauncher.musicplayer.adapter.TodoAdapter
 import com.carlauncher.musicplayer.model.Song
 import com.carlauncher.musicplayer.model.SortOrder
 import com.carlauncher.musicplayer.viewmodel.MusicViewModel
@@ -32,6 +33,7 @@ class SongListFragment : Fragment() {
     private lateinit var categoryAdapter: CategoryAdapter
     private lateinit var mostPlayedAdapter: MostPlayedAdapter
     private lateinit var playlistAdapter: PlaylistAdapter
+    private lateinit var todoAdapter: TodoAdapter
 
     // Views
     private lateinit var rvSongs: RecyclerView
@@ -47,10 +49,11 @@ class SongListFragment : Fragment() {
     private lateinit var tabCategories: TextView
     private lateinit var tabMostPlayed: TextView
     private lateinit var tabPlaylists: TextView
+    private lateinit var tabTodo: TextView
 
     private var currentTab = Tab.SONGS
 
-    enum class Tab { SONGS, ARTISTS, CATEGORIES, MOST_PLAYED, PLAYLISTS }
+    enum class Tab { SONGS, ARTISTS, CATEGORIES, MOST_PLAYED, PLAYLISTS, TODO }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater.inflate(R.layout.fragment_song_list, container, false)
@@ -80,6 +83,7 @@ class SongListFragment : Fragment() {
         tabCategories = view.findViewById(R.id.tabCategories)
         tabMostPlayed = view.findViewById(R.id.tabMostPlayed)
         tabPlaylists = view.findViewById(R.id.tabPlaylists)
+        tabTodo = view.findViewById(R.id.tabTodo)
 
         view.findViewById<TextView>(R.id.btnPlayAll).setOnClickListener {
             if (currentTab == Tab.MOST_PLAYED) {
@@ -138,6 +142,12 @@ class SongListFragment : Fragment() {
             }
         )
 
+        todoAdapter = TodoAdapter(
+            onToggle = { todo, done -> viewModel.toggleTodoDone(todo.id, done) },
+            onDelete = { todo -> viewModel.deleteTodo(todo.id) },
+            onEdit = { todo -> showEditTodoDialog(todo) }
+        )
+
         rvSongs.layoutManager = LinearLayoutManager(context)
         rvSongs.adapter = songAdapter
     }
@@ -148,10 +158,11 @@ class SongListFragment : Fragment() {
         tabCategories.setOnClickListener { switchTab(Tab.CATEGORIES) }
         tabMostPlayed.setOnClickListener { switchTab(Tab.MOST_PLAYED) }
         tabPlaylists.setOnClickListener { switchTab(Tab.PLAYLISTS) }
+        tabTodo.setOnClickListener { switchTab(Tab.TODO) }
     }
 
     private val allTabs: List<TextView>
-        get() = listOf(tabSongs, tabArtists, tabCategories, tabMostPlayed, tabPlaylists)
+        get() = listOf(tabSongs, tabArtists, tabCategories, tabMostPlayed, tabPlaylists, tabTodo)
 
     private fun switchTab(tab: Tab) {
         currentTab = tab
@@ -167,9 +178,20 @@ class SongListFragment : Fragment() {
             Tab.CATEGORIES -> tabCategories
             Tab.MOST_PLAYED -> tabMostPlayed
             Tab.PLAYLISTS -> tabPlaylists
+            Tab.TODO -> tabTodo
         }
         selectedTab.setBackgroundResource(R.drawable.bg_tab_selected)
         selectedTab.setTextColor(requireContext().getColor(R.color.text_primary))
+
+        // Reset play-all button when leaving TODO tab
+        if (tab != Tab.TODO) {
+            view?.findViewById<TextView>(R.id.btnPlayAll)?.let {
+                it.text = "\u25B6 全部播放"
+                it.setOnClickListener {
+                    if (currentTab == Tab.MOST_PLAYED) viewModel.playMostPlayed() else viewModel.playAll()
+                }
+            }
+        }
 
         when (tab) {
             Tab.SONGS -> {
@@ -201,6 +223,17 @@ class SongListFragment : Fragment() {
                 rvSongs.adapter = playlistAdapter
                 actionBar.visibility = View.GONE
                 viewModel.loadPlaylists()
+            }
+            Tab.TODO -> {
+                rvSongs.layoutManager = LinearLayoutManager(context)
+                rvSongs.adapter = todoAdapter
+                actionBar.visibility = View.VISIBLE
+                tvSongCount.text = ""
+                view?.findViewById<TextView>(R.id.btnPlayAll)?.let {
+                    it.text = "+ 添加"
+                    it.setOnClickListener { showAddTodoDialog() }
+                }
+                viewModel.loadTodos()
             }
         }
     }
@@ -433,6 +466,56 @@ class SongListFragment : Fragment() {
             .show()
     }
 
+    // ========== TODO 对话框 ==========
+
+    private fun showAddTodoDialog() {
+        val editText = EditText(requireContext()).apply {
+            hint = getString(R.string.todo_add_hint)
+            setTextColor(requireContext().getColor(R.color.text_primary))
+            setHintTextColor(requireContext().getColor(R.color.text_hint))
+            setBackgroundResource(R.drawable.bg_search_bar)
+            setPadding(32, 24, 32, 24)
+        }
+
+        AlertDialog.Builder(requireContext(), R.style.Theme_CarMusicPlayer)
+            .setTitle(R.string.todo_add_title)
+            .setView(editText)
+            .setPositiveButton(R.string.btn_confirm) { _, _ ->
+                val content = editText.text.toString().trim()
+                if (content.isNotEmpty()) {
+                    viewModel.addTodo(content)
+                }
+            }
+            .setNegativeButton(R.string.btn_cancel, null)
+            .show()
+    }
+
+    private fun showEditTodoDialog(todo: com.carlauncher.musicplayer.db.TodoEntity) {
+        val editText = EditText(requireContext()).apply {
+            setText(todo.content)
+            setTextColor(requireContext().getColor(R.color.text_primary))
+            setHintTextColor(requireContext().getColor(R.color.text_hint))
+            setBackgroundResource(R.drawable.bg_search_bar)
+            setPadding(32, 24, 32, 24)
+            selectAll()
+        }
+
+        AlertDialog.Builder(requireContext(), R.style.Theme_CarMusicPlayer)
+            .setTitle(R.string.todo_edit_title)
+            .setView(editText)
+            .setPositiveButton(R.string.btn_confirm) { _, _ ->
+                val content = editText.text.toString().trim()
+                if (content.isNotEmpty()) {
+                    viewModel.updateTodoContent(todo.id, content)
+                }
+            }
+            .setNeutralButton(R.string.btn_delete) { _, _ ->
+                viewModel.deleteTodo(todo.id)
+            }
+            .setNegativeButton(R.string.btn_cancel, null)
+            .show()
+    }
+
     // ========== ViewModel 观察 ==========
 
     private fun reObservePlaylists() {
@@ -479,6 +562,15 @@ class SongListFragment : Fragment() {
         }
 
         reObservePlaylists()
+
+        viewModel.todos.observe(viewLifecycleOwner) { todos ->
+            if (currentTab == Tab.TODO) {
+                todoAdapter.submitList(todos)
+                tvSongCount.text = "${todos.size} 条记录"
+                rvSongs.visibility = if (todos.isNotEmpty()) View.VISIBLE else View.GONE
+                emptyView.visibility = if (todos.isEmpty()) View.VISIBLE else View.GONE
+            }
+        }
 
         viewModel.currentPlayingSong.observe(viewLifecycleOwner) { song ->
             songAdapter.currentPlayingSongId = song?.id ?: -1
