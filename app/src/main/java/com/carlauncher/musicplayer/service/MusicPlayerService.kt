@@ -19,6 +19,7 @@ import com.carlauncher.musicplayer.R
 import com.carlauncher.musicplayer.model.PlayMode
 import com.carlauncher.musicplayer.model.Song
 import com.carlauncher.musicplayer.recommendation.RecommendationEngine
+import com.carlauncher.musicplayer.repository.PlayHistoryManager
 
 class MusicPlayerService : Service(), MediaPlayer.OnCompletionListener,
     MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener {
@@ -47,13 +48,19 @@ class MusicPlayerService : Service(), MediaPlayer.OnCompletionListener,
     private var recommendationEngine: RecommendationEngine? = null
     private var allSongsForRecommend: List<Song> = emptyList()
 
+    // 播放历史管理器
+    private lateinit var playHistoryManager: PlayHistoryManager
+
     // 回调
     var onPlayStateChanged: ((Boolean) -> Unit)? = null
     var onSongChanged: ((Song?) -> Unit)? = null
     var onProgressUpdate: ((Int, Int) -> Unit)? = null
+    var onPlayHistoryUpdated: (() -> Unit)? = null
 
     val currentSong: Song?
         get() = if (currentIndex in playlist.indices) playlist[currentIndex] else null
+
+    fun getPlayHistoryManager(): PlayHistoryManager = playHistoryManager
 
     val isPlaying: Boolean
         get() = mediaPlayer?.isPlaying == true
@@ -72,6 +79,7 @@ class MusicPlayerService : Service(), MediaPlayer.OnCompletionListener,
 
     override fun onCreate() {
         super.onCreate()
+        playHistoryManager = PlayHistoryManager(applicationContext)
         createNotificationChannel()
         setupMediaSession()
         setupAudioFocus()
@@ -107,7 +115,10 @@ class MusicPlayerService : Service(), MediaPlayer.OnCompletionListener,
 
     fun setRecommendationData(allSongs: List<Song>) {
         allSongsForRecommend = allSongs
-        recommendationEngine = RecommendationEngine(allSongs)
+        recommendationEngine = RecommendationEngine(
+            allSongs,
+            playHistoryManager.getArtistPlayCounts()
+        )
     }
 
     fun play(song: Song) {
@@ -243,8 +254,12 @@ class MusicPlayerService : Service(), MediaPlayer.OnCompletionListener,
     }
 
     override fun onCompletion(mp: MediaPlayer?) {
-        // 记录播放完成，用于推荐
-        currentSong?.let { recommendationEngine?.recordPlay(it) }
+        // 记录播放完成，用于推荐和历史统计
+        currentSong?.let {
+            recommendationEngine?.recordPlay(it)
+            playHistoryManager.recordPlay(it)
+            onPlayHistoryUpdated?.invoke()
+        }
         playNext()
     }
 

@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.carlauncher.musicplayer.model.*
 import com.carlauncher.musicplayer.repository.MusicRepository
+import com.carlauncher.musicplayer.repository.PlayHistoryManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -14,6 +15,7 @@ import kotlinx.coroutines.withContext
 class MusicViewModel(application: Application) : AndroidViewModel(application) {
 
     val repository = MusicRepository(application)
+    val playHistoryManager = PlayHistoryManager(application)
 
     // 所有歌曲
     private val _allSongs = MutableLiveData<List<Song>>(emptyList())
@@ -37,6 +39,10 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     // 分类歌曲
     private val _categorySongs = MutableLiveData<List<Song>>(emptyList())
     val categorySongs: LiveData<List<Song>> = _categorySongs
+
+    // 常听歌曲（按播放频率排序）
+    private val _mostPlayedSongs = MutableLiveData<List<Song>>(emptyList())
+    val mostPlayedSongs: LiveData<List<Song>> = _mostPlayedSongs
 
     // 当前播放的歌曲
     private val _currentPlayingSong = MutableLiveData<Song?>()
@@ -126,6 +132,29 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun showCategorySongs(category: MusicCategory) {
         _categorySongs.value = repository.getSongsByCategory(category)
+    }
+
+    /**
+     * 加载常听歌曲（播放次数>=2的歌曲，按播放频率降序）
+     */
+    fun loadMostPlayed() {
+        _mostPlayedSongs.value = playHistoryManager.getMostPlayedSongs(repository.getAllSongs())
+    }
+
+    /**
+     * 获取歌曲的播放次数
+     */
+    fun getPlayCount(path: String): Int {
+        return playHistoryManager.getPlayCount(path)
+    }
+
+    /**
+     * 播放常听歌曲列表
+     */
+    fun playMostPlayed() {
+        val songs = _mostPlayedSongs.value ?: return
+        if (songs.isEmpty()) return
+        onPlayRequest?.invoke(songs, 0)
     }
 
     /**

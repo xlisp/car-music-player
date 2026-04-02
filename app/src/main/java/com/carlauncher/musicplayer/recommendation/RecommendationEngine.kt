@@ -16,14 +16,17 @@ import kotlin.math.abs
  * 例如：播放完"十年"(陈奕迅, 2003, 粤语流行) → 推荐"夜曲"(周杰伦, 2005, 华语流行)
  * 因为它们年代相近、都是华语区流行歌曲
  */
-class RecommendationEngine(private val allSongs: List<Song>) {
+class RecommendationEngine(
+    private val allSongs: List<Song>,
+    initialArtistPlayCounts: Map<String, Int> = emptyMap()
+) {
 
     // 播放历史记录（最近播放的歌曲ID列表）
     private val playHistory = mutableListOf<Long>()
     private val maxHistorySize = 100
 
-    // 歌手播放次数统计
-    private val artistPlayCount = mutableMapOf<String, Int>()
+    // 歌手播放次数统计（从持久化历史初始化）
+    private val artistPlayCount = initialArtistPlayCounts.toMutableMap()
 
     /**
      * 记录一次播放

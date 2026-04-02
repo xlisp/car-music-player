@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.carlauncher.musicplayer.R
 import com.carlauncher.musicplayer.adapter.ArtistAdapter
 import com.carlauncher.musicplayer.adapter.CategoryAdapter
+import com.carlauncher.musicplayer.adapter.MostPlayedAdapter
 import com.carlauncher.musicplayer.adapter.SongAdapter
 import com.carlauncher.musicplayer.model.SortOrder
 import com.carlauncher.musicplayer.viewmodel.MusicViewModel
@@ -27,6 +28,7 @@ class SongListFragment : Fragment() {
     private lateinit var songAdapter: SongAdapter
     private lateinit var artistAdapter: ArtistAdapter
     private lateinit var categoryAdapter: CategoryAdapter
+    private lateinit var mostPlayedAdapter: MostPlayedAdapter
 
     // Views
     private lateinit var rvSongs: RecyclerView
@@ -40,10 +42,11 @@ class SongListFragment : Fragment() {
     private lateinit var tabSongs: TextView
     private lateinit var tabArtists: TextView
     private lateinit var tabCategories: TextView
+    private lateinit var tabMostPlayed: TextView
 
     private var currentTab = Tab.SONGS
 
-    enum class Tab { SONGS, ARTISTS, CATEGORIES }
+    enum class Tab { SONGS, ARTISTS, CATEGORIES, MOST_PLAYED }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater.inflate(R.layout.fragment_song_list, container, false)
@@ -71,9 +74,14 @@ class SongListFragment : Fragment() {
         tabSongs = view.findViewById(R.id.tabSongs)
         tabArtists = view.findViewById(R.id.tabArtists)
         tabCategories = view.findViewById(R.id.tabCategories)
+        tabMostPlayed = view.findViewById(R.id.tabMostPlayed)
 
         view.findViewById<TextView>(R.id.btnPlayAll).setOnClickListener {
-            viewModel.playAll()
+            if (currentTab == Tab.MOST_PLAYED) {
+                viewModel.playMostPlayed()
+            } else {
+                viewModel.playAll()
+            }
         }
     }
 
@@ -97,6 +105,15 @@ class SongListFragment : Fragment() {
             showCategorySongsView(category.displayName)
         }
 
+        mostPlayedAdapter = MostPlayedAdapter(
+            getPlayCount = { path -> viewModel.getPlayCount(path) },
+            onSongClick = { song, position ->
+                // 设置常听歌曲列表为当前播放列表
+                val songs = viewModel.mostPlayedSongs.value ?: return@MostPlayedAdapter
+                viewModel.onPlayRequest?.invoke(songs, position)
+            }
+        )
+
         rvSongs.layoutManager = LinearLayoutManager(context)
         rvSongs.adapter = songAdapter
     }
@@ -105,13 +122,14 @@ class SongListFragment : Fragment() {
         tabSongs.setOnClickListener { switchTab(Tab.SONGS) }
         tabArtists.setOnClickListener { switchTab(Tab.ARTISTS) }
         tabCategories.setOnClickListener { switchTab(Tab.CATEGORIES) }
+        tabMostPlayed.setOnClickListener { switchTab(Tab.MOST_PLAYED) }
     }
 
     private fun switchTab(tab: Tab) {
         currentTab = tab
 
         // 更新标签样式
-        listOf(tabSongs, tabArtists, tabCategories).forEach {
+        listOf(tabSongs, tabArtists, tabCategories, tabMostPlayed).forEach {
             it.setBackgroundResource(R.drawable.bg_tab_unselected)
             it.setTextColor(requireContext().getColor(R.color.text_secondary))
         }
@@ -120,6 +138,7 @@ class SongListFragment : Fragment() {
             Tab.SONGS -> tabSongs
             Tab.ARTISTS -> tabArtists
             Tab.CATEGORIES -> tabCategories
+            Tab.MOST_PLAYED -> tabMostPlayed
         }
         selectedTab.setBackgroundResource(R.drawable.bg_tab_selected)
         selectedTab.setTextColor(requireContext().getColor(R.color.text_primary))
@@ -142,6 +161,12 @@ class SongListFragment : Fragment() {
                 rvSongs.adapter = categoryAdapter
                 actionBar.visibility = View.GONE
                 viewModel.loadCategories()
+            }
+            Tab.MOST_PLAYED -> {
+                rvSongs.layoutManager = LinearLayoutManager(context)
+                rvSongs.adapter = mostPlayedAdapter
+                actionBar.visibility = View.VISIBLE
+                viewModel.loadMostPlayed()
             }
         }
     }
@@ -259,8 +284,19 @@ class SongListFragment : Fragment() {
             }
         }
 
+        viewModel.mostPlayedSongs.observe(viewLifecycleOwner) { songs ->
+            if (currentTab == Tab.MOST_PLAYED) {
+                mostPlayedAdapter.submitList(songs)
+                tvSongCount.text = "${songs.size} 首常听"
+
+                rvSongs.visibility = if (songs.isNotEmpty()) View.VISIBLE else View.GONE
+                emptyView.visibility = if (songs.isEmpty() && !viewModel.isLoading.value!!) View.VISIBLE else View.GONE
+            }
+        }
+
         viewModel.currentPlayingSong.observe(viewLifecycleOwner) { song ->
             songAdapter.currentPlayingSongId = song?.id ?: -1
+            mostPlayedAdapter.currentPlayingSongId = song?.id ?: -1
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { loading ->

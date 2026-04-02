@@ -192,6 +192,12 @@ class MainActivity : AppCompatActivity() {
                 if (playing) startProgressUpdater() else stopProgressUpdater()
             }
         }
+
+        musicService?.onPlayHistoryUpdated = {
+            runOnUiThread {
+                viewModel.loadMostPlayed()
+            }
+        }
     }
 
     private fun showSongListFragment() {

@@ -15,4 +15,7 @@
     <string name="songs_count">%d 首歌曲</string>
     <string name="no_search_result">没有找到匹配的歌曲</string>
     <string name="rescan">重新扫描</string>
+    <string name="tab_most_played">常听</string>
+    <string name="no_play_history">还没有播放记录\n多听几首歌曲后这里会显示你的常听歌曲</string>
+    <string name="play_count_format">播放 %d 次</string>
 </resources>
