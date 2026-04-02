@@ -36,6 +36,11 @@ android {
     buildFeatures {
         viewBinding true
     }
+
+    lint {
+        // 车机不走Google Play，不需要targetSdk>=33的检查
+        disable 'ExpiredTargetSdkVersion'
+    }
 }
 
 dependencies {
