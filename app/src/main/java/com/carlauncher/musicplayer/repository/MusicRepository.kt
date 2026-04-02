@@ -30,8 +30,15 @@ class MusicRepository(private val context: Context) {
         // 2. 直接扫描USB/外部存储路径
         scanExternalStorages()
 
-        // 去重
+        // 去重：先按路径去重
         allSongs = allSongs.distinctBy { it.path }.toMutableList()
+
+        // 再按文件大小去重（大小一致视为同一首歌，保留第一个）
+        val seenSizes = mutableSetOf<Long>()
+        allSongs = allSongs.filter { song ->
+            if (song.size <= 0) true
+            else seenSizes.add(song.size)
+        }.toMutableList()
 
         return allSongs.toList()
     }
