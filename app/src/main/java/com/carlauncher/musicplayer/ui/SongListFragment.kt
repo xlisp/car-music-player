@@ -17,7 +17,9 @@ import com.carlauncher.musicplayer.R
 import com.carlauncher.musicplayer.adapter.ArtistAdapter
 import com.carlauncher.musicplayer.adapter.CategoryAdapter
 import com.carlauncher.musicplayer.adapter.MostPlayedAdapter
+import com.carlauncher.musicplayer.adapter.PlaylistAdapter
 import com.carlauncher.musicplayer.adapter.SongAdapter
+import com.carlauncher.musicplayer.model.Song
 import com.carlauncher.musicplayer.model.SortOrder
 import com.carlauncher.musicplayer.viewmodel.MusicViewModel
 
@@ -29,6 +31,7 @@ class SongListFragment : Fragment() {
     private lateinit var artistAdapter: ArtistAdapter
     private lateinit var categoryAdapter: CategoryAdapter
     private lateinit var mostPlayedAdapter: MostPlayedAdapter
+    private lateinit var playlistAdapter: PlaylistAdapter
 
     // Views
     private lateinit var rvSongs: RecyclerView
@@ -43,10 +46,11 @@ class SongListFragment : Fragment() {
     private lateinit var tabArtists: TextView
     private lateinit var tabCategories: TextView
     private lateinit var tabMostPlayed: TextView
+    private lateinit var tabPlaylists: TextView
 
     private var currentTab = Tab.SONGS
 
-    enum class Tab { SONGS, ARTISTS, CATEGORIES, MOST_PLAYED }
+    enum class Tab { SONGS, ARTISTS, CATEGORIES, MOST_PLAYED, PLAYLISTS }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater.inflate(R.layout.fragment_song_list, container, false)
@@ -75,6 +79,7 @@ class SongListFragment : Fragment() {
         tabArtists = view.findViewById(R.id.tabArtists)
         tabCategories = view.findViewById(R.id.tabCategories)
         tabMostPlayed = view.findViewById(R.id.tabMostPlayed)
+        tabPlaylists = view.findViewById(R.id.tabPlaylists)
 
         view.findViewById<TextView>(R.id.btnPlayAll).setOnClickListener {
             if (currentTab == Tab.MOST_PLAYED) {
@@ -90,9 +95,13 @@ class SongListFragment : Fragment() {
             viewModel.playSong(song, position)
         }
 
+        // Long press on song -> add to playlist
+        songAdapter.onSongLongClick = { song ->
+            showAddToPlaylistDialog(song)
+        }
+
         artistAdapter = ArtistAdapter(
             onArtistClick = { artist ->
-                // 显示歌手的歌曲列表
                 showArtistSongs(artist.name)
             },
             onPlayAllClick = { artist ->
@@ -113,6 +122,22 @@ class SongListFragment : Fragment() {
             }
         )
 
+        mostPlayedAdapter.onSongLongClick = { song ->
+            showAddToPlaylistDialog(song)
+        }
+
+        playlistAdapter = PlaylistAdapter(
+            onPlaylistClick = { playlist ->
+                showPlaylistSongs(playlist.id, playlist.name)
+            },
+            onPlaylistLongClick = { playlist ->
+                showPlaylistOptionsDialog(playlist)
+            },
+            onCreateClick = {
+                showCreatePlaylistDialog()
+            }
+        )
+
         rvSongs.layoutManager = LinearLayoutManager(context)
         rvSongs.adapter = songAdapter
     }
@@ -122,13 +147,16 @@ class SongListFragment : Fragment() {
         tabArtists.setOnClickListener { switchTab(Tab.ARTISTS) }
         tabCategories.setOnClickListener { switchTab(Tab.CATEGORIES) }
         tabMostPlayed.setOnClickListener { switchTab(Tab.MOST_PLAYED) }
+        tabPlaylists.setOnClickListener { switchTab(Tab.PLAYLISTS) }
     }
+
+    private val allTabs: List<TextView>
+        get() = listOf(tabSongs, tabArtists, tabCategories, tabMostPlayed, tabPlaylists)
 
     private fun switchTab(tab: Tab) {
         currentTab = tab
 
-        // 更新标签样式
-        listOf(tabSongs, tabArtists, tabCategories, tabMostPlayed).forEach {
+        allTabs.forEach {
             it.setBackgroundResource(R.drawable.bg_tab_unselected)
             it.setTextColor(requireContext().getColor(R.color.text_secondary))
         }
@@ -138,6 +166,7 @@ class SongListFragment : Fragment() {
             Tab.ARTISTS -> tabArtists
             Tab.CATEGORIES -> tabCategories
             Tab.MOST_PLAYED -> tabMostPlayed
+            Tab.PLAYLISTS -> tabPlaylists
         }
         selectedTab.setBackgroundResource(R.drawable.bg_tab_selected)
         selectedTab.setTextColor(requireContext().getColor(R.color.text_primary))
@@ -167,6 +196,12 @@ class SongListFragment : Fragment() {
                 actionBar.visibility = View.VISIBLE
                 viewModel.loadMostPlayed()
             }
+            Tab.PLAYLISTS -> {
+                rvSongs.layoutManager = GridLayoutManager(context, 3)
+                rvSongs.adapter = playlistAdapter
+                actionBar.visibility = View.GONE
+                viewModel.loadPlaylists()
+            }
         }
     }
 
@@ -190,7 +225,6 @@ class SongListFragment : Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
                 viewModel.search(s?.toString() ?: "")
-                // 搜索时切换到歌曲tab
                 if (currentTab != Tab.SONGS) {
                     switchTab(Tab.SONGS)
                 }
@@ -211,7 +245,6 @@ class SongListFragment : Fragment() {
 
         val rgSort = dialogView.findViewById<RadioGroup>(R.id.rgSort)
 
-        // 设置当前选中的排序方式
         val currentSort = viewModel.currentSortOrder.value ?: SortOrder.DATE_NEWEST
         val checkedId = when (currentSort) {
             SortOrder.TITLE_ASC -> R.id.rbTitleAsc
@@ -260,6 +293,158 @@ class SongListFragment : Fragment() {
             .commit()
     }
 
+    private fun showPlaylistSongs(playlistId: Long, playlistName: String) {
+        val fragment = PlaylistSongsFragment.newInstance(playlistId, playlistName)
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.contentFrame, fragment)
+            .addToBackStack(null)
+            .commit()
+    }
+
+    // ========== 播放列表对话框 ==========
+
+    private fun showCreatePlaylistDialog() {
+        val editText = EditText(requireContext()).apply {
+            hint = getString(R.string.playlist_name_hint)
+            setTextColor(requireContext().getColor(R.color.text_primary))
+            setHintTextColor(requireContext().getColor(R.color.text_hint))
+            setBackgroundResource(R.drawable.bg_search_bar)
+            setPadding(32, 24, 32, 24)
+        }
+
+        AlertDialog.Builder(requireContext(), R.style.Theme_CarMusicPlayer)
+            .setTitle(R.string.create_playlist_title)
+            .setView(editText)
+            .setPositiveButton(R.string.btn_confirm) { _, _ ->
+                val name = editText.text.toString().trim()
+                if (name.isNotEmpty()) {
+                    viewModel.createPlaylist(name)
+                }
+            }
+            .setNegativeButton(R.string.btn_cancel, null)
+            .show()
+    }
+
+    private fun showPlaylistOptionsDialog(playlist: com.carlauncher.musicplayer.repository.PlaylistRepository.PlaylistWithCount) {
+        val options = arrayOf(
+            getString(R.string.btn_rename),
+            getString(R.string.btn_delete)
+        )
+        AlertDialog.Builder(requireContext(), R.style.Theme_CarMusicPlayer)
+            .setTitle(playlist.name)
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> showRenamePlaylistDialog(playlist)
+                    1 -> showDeletePlaylistDialog(playlist)
+                }
+            }
+            .show()
+    }
+
+    private fun showRenamePlaylistDialog(playlist: com.carlauncher.musicplayer.repository.PlaylistRepository.PlaylistWithCount) {
+        val editText = EditText(requireContext()).apply {
+            setText(playlist.name)
+            setTextColor(requireContext().getColor(R.color.text_primary))
+            setHintTextColor(requireContext().getColor(R.color.text_hint))
+            setBackgroundResource(R.drawable.bg_search_bar)
+            setPadding(32, 24, 32, 24)
+            selectAll()
+        }
+
+        AlertDialog.Builder(requireContext(), R.style.Theme_CarMusicPlayer)
+            .setTitle(R.string.rename_playlist_title)
+            .setView(editText)
+            .setPositiveButton(R.string.btn_confirm) { _, _ ->
+                val name = editText.text.toString().trim()
+                if (name.isNotEmpty()) {
+                    viewModel.renamePlaylist(playlist.id, name)
+                }
+            }
+            .setNegativeButton(R.string.btn_cancel, null)
+            .show()
+    }
+
+    private fun showDeletePlaylistDialog(playlist: com.carlauncher.musicplayer.repository.PlaylistRepository.PlaylistWithCount) {
+        AlertDialog.Builder(requireContext(), R.style.Theme_CarMusicPlayer)
+            .setTitle(R.string.delete_playlist_title)
+            .setMessage(getString(R.string.delete_playlist_confirm, playlist.name))
+            .setPositiveButton(R.string.btn_delete) { _, _ ->
+                viewModel.deletePlaylist(playlist.id)
+            }
+            .setNegativeButton(R.string.btn_cancel, null)
+            .show()
+    }
+
+    private fun showAddToPlaylistDialog(song: Song) {
+        viewModel.loadPlaylists()
+        // Wait a moment for playlists to load, then show dialog
+        viewModel.playlists.observe(viewLifecycleOwner) observer@{ playlists ->
+            // Only show once
+            viewModel.playlists.removeObservers(viewLifecycleOwner)
+            // Re-observe for tab updates
+            reObservePlaylists()
+
+            if (playlists.isEmpty()) {
+                // No playlists yet, offer to create one
+                showCreatePlaylistThenAddDialog(song)
+                return@observer
+            }
+
+            val names = playlists.map { it.name }.toTypedArray()
+            AlertDialog.Builder(requireContext(), R.style.Theme_CarMusicPlayer)
+                .setTitle(R.string.add_to_playlist)
+                .setItems(names) { _, which ->
+                    val playlist = playlists[which]
+                    viewModel.addSongToPlaylist(playlist.id, song) {
+                        Toast.makeText(context, getString(R.string.added_to_playlist, playlist.name), Toast.LENGTH_SHORT).show()
+                    }
+                }
+                .setNeutralButton(R.string.create_playlist) { _, _ ->
+                    showCreatePlaylistThenAddDialog(song)
+                }
+                .setNegativeButton(R.string.btn_cancel, null)
+                .show()
+        }
+    }
+
+    private fun showCreatePlaylistThenAddDialog(song: Song) {
+        val editText = EditText(requireContext()).apply {
+            hint = getString(R.string.playlist_name_hint)
+            setTextColor(requireContext().getColor(R.color.text_primary))
+            setHintTextColor(requireContext().getColor(R.color.text_hint))
+            setBackgroundResource(R.drawable.bg_search_bar)
+            setPadding(32, 24, 32, 24)
+        }
+
+        AlertDialog.Builder(requireContext(), R.style.Theme_CarMusicPlayer)
+            .setTitle(R.string.create_playlist_title)
+            .setView(editText)
+            .setPositiveButton(R.string.btn_confirm) { _, _ ->
+                val name = editText.text.toString().trim()
+                if (name.isNotEmpty()) {
+                    viewModel.createPlaylist(name) { playlistId ->
+                        viewModel.addSongToPlaylist(playlistId, song) {
+                            Toast.makeText(context, getString(R.string.added_to_playlist, name), Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
+            .setNegativeButton(R.string.btn_cancel, null)
+            .show()
+    }
+
+    // ========== ViewModel 观察 ==========
+
+    private fun reObservePlaylists() {
+        viewModel.playlists.observe(viewLifecycleOwner) { playlists ->
+            if (currentTab == Tab.PLAYLISTS) {
+                playlistAdapter.submitList(playlists)
+                rvSongs.visibility = View.VISIBLE
+                emptyView.visibility = View.GONE
+            }
+        }
+    }
+
     private fun observeViewModel() {
         viewModel.displayedSongs.observe(viewLifecycleOwner) { songs ->
             if (currentTab == Tab.SONGS) {
@@ -292,6 +477,8 @@ class SongListFragment : Fragment() {
                 emptyView.visibility = if (songs.isEmpty() && !viewModel.isLoading.value!!) View.VISIBLE else View.GONE
             }
         }
+
+        reObservePlaylists()
 
         viewModel.currentPlayingSong.observe(viewLifecycleOwner) { song ->
             songAdapter.currentPlayingSongId = song?.id ?: -1

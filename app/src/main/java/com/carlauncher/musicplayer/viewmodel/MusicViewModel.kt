@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.carlauncher.musicplayer.model.*
 import com.carlauncher.musicplayer.repository.MusicRepository
 import com.carlauncher.musicplayer.repository.PlayHistoryManager
+import com.carlauncher.musicplayer.repository.PlaylistRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -16,6 +17,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
 
     val repository = MusicRepository(application)
     val playHistoryManager = PlayHistoryManager(application)
+    val playlistRepository = PlaylistRepository(application)
 
     // 所有歌曲
     private val _allSongs = MutableLiveData<List<Song>>(emptyList())
@@ -43,6 +45,14 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     // 常听歌曲（按播放频率排序）
     private val _mostPlayedSongs = MutableLiveData<List<Song>>(emptyList())
     val mostPlayedSongs: LiveData<List<Song>> = _mostPlayedSongs
+
+    // 播放列表
+    private val _playlists = MutableLiveData<List<PlaylistRepository.PlaylistWithCount>>(emptyList())
+    val playlists: LiveData<List<PlaylistRepository.PlaylistWithCount>> = _playlists
+
+    // 播放列表中的歌曲
+    private val _playlistSongs = MutableLiveData<List<Song>>(emptyList())
+    val playlistSongs: LiveData<List<Song>> = _playlistSongs
 
     // 当前播放的歌曲
     private val _currentPlayingSong = MutableLiveData<Song?>()
@@ -204,6 +214,105 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun setPlayingState(playing: Boolean) {
         _isPlaying.value = playing
+    }
+
+    // ========== 播放列表 ==========
+
+    /**
+     * 加载所有播放列表
+     */
+    fun loadPlaylists() {
+        viewModelScope.launch {
+            _playlists.value = withContext(Dispatchers.IO) {
+                playlistRepository.getAllPlaylists()
+            }
+        }
+    }
+
+    /**
+     * 创建播放列表
+     */
+    fun createPlaylist(name: String, onCreated: ((Long) -> Unit)? = null) {
+        viewModelScope.launch {
+            val id = withContext(Dispatchers.IO) {
+                playlistRepository.createPlaylist(name)
+            }
+            loadPlaylists()
+            onCreated?.invoke(id)
+        }
+    }
+
+    /**
+     * 重命名播放列表
+     */
+    fun renamePlaylist(id: Long, name: String) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                playlistRepository.renamePlaylist(id, name)
+            }
+            loadPlaylists()
+        }
+    }
+
+    /**
+     * 删除播放列表
+     */
+    fun deletePlaylist(id: Long) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                playlistRepository.deletePlaylist(id)
+            }
+            loadPlaylists()
+        }
+    }
+
+    /**
+     * 加载播放列表中的歌曲（匹配当前扫描到的歌曲）
+     */
+    fun loadPlaylistSongs(playlistId: Long) {
+        viewModelScope.launch {
+            val entries = withContext(Dispatchers.IO) {
+                playlistRepository.getPlaylistSongs(playlistId)
+            }
+            val allSongs = repository.getAllSongs()
+            val pathToSong = allSongs.associateBy { it.path }
+            _playlistSongs.value = entries.mapNotNull { pathToSong[it.songPath] }
+        }
+    }
+
+    /**
+     * 添加歌曲到播放列表
+     */
+    fun addSongToPlaylist(playlistId: Long, song: Song, onDone: (() -> Unit)? = null) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                playlistRepository.addSongToPlaylist(playlistId, song)
+            }
+            loadPlaylists()
+            onDone?.invoke()
+        }
+    }
+
+    /**
+     * 从播放列表移除歌曲
+     */
+    fun removeSongFromPlaylist(playlistId: Long, songPath: String) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                playlistRepository.removeSongFromPlaylist(playlistId, songPath)
+            }
+            loadPlaylistSongs(playlistId)
+            loadPlaylists()
+        }
+    }
+
+    /**
+     * 播放播放列表中所有歌曲
+     */
+    fun playPlaylistSongs() {
+        val songs = _playlistSongs.value ?: return
+        if (songs.isEmpty()) return
+        onPlayRequest?.invoke(songs, 0)
     }
 
     /**

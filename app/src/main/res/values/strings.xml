@@ -18,4 +18,20 @@
     <string name="tab_most_played">常听</string>
     <string name="no_play_history">还没有播放记录\n多听几首歌曲后这里会显示你的常听歌曲</string>
     <string name="play_count_format">播放 %d 次</string>
+
+    <string name="tab_playlists">播放列表</string>
+    <string name="create_playlist">新建列表</string>
+    <string name="create_playlist_title">新建播放列表</string>
+    <string name="rename_playlist_title">重命名播放列表</string>
+    <string name="playlist_name_hint">请输入列表名称</string>
+    <string name="delete_playlist_title">删除播放列表</string>
+    <string name="delete_playlist_confirm">确定删除播放列表 \"%s\" 吗？</string>
+    <string name="add_to_playlist">添加到播放列表</string>
+    <string name="added_to_playlist">已添加到 \"%s\"</string>
+    <string name="remove_from_playlist">从列表中移除</string>
+    <string name="no_playlists">还没有播放列表\n点击 + 创建一个吧</string>
+    <string name="btn_cancel">取消</string>
+    <string name="btn_confirm">确定</string>
+    <string name="btn_delete">删除</string>
+    <string name="btn_rename">重命名</string>
 </resources>

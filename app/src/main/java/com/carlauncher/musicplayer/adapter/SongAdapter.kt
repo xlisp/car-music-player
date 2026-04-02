@@ -14,6 +14,8 @@ class SongAdapter(
     private val onSongClick: (Song, Int) -> Unit
 ) : ListAdapter<Song, SongAdapter.ViewHolder>(SongDiffCallback()) {
 
+    var onSongLongClick: ((Song) -> Unit)? = null
+
     var currentPlayingSongId: Long = -1
         set(value) {
             val oldId = field
@@ -64,6 +66,11 @@ class SongAdapter(
 
             itemView.setOnClickListener {
                 onSongClick(song, position)
+            }
+
+            itemView.setOnLongClickListener {
+                onSongLongClick?.invoke(song)
+                onSongLongClick != null
             }
         }
     }

@@ -18,6 +18,8 @@ class MostPlayedAdapter(
     private val onSongClick: (Song, Int) -> Unit
 ) : ListAdapter<Song, MostPlayedAdapter.ViewHolder>(SongDiffCallback()) {
 
+    var onSongLongClick: ((Song) -> Unit)? = null
+
     var currentPlayingSongId: Long = -1
         set(value) {
             val oldId = field
@@ -67,6 +69,11 @@ class MostPlayedAdapter(
 
             itemView.setOnClickListener {
                 onSongClick(song, position)
+            }
+
+            itemView.setOnLongClickListener {
+                onSongLongClick?.invoke(song)
+                onSongLongClick != null
             }
         }
     }
