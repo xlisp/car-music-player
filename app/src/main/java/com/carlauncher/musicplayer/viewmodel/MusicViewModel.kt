@@ -169,7 +169,7 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * 播放指定歌曲
      */
-    fun playSong(song: Song, positionInList: Int) {
+    fun playSong(@Suppress("UNUSED_PARAMETER") song: Song, positionInList: Int) {
         val songs = _displayedSongs.value ?: return
         onPlayRequest?.invoke(songs, positionInList)
     }

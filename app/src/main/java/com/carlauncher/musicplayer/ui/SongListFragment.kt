@@ -107,8 +107,7 @@ class SongListFragment : Fragment() {
 
         mostPlayedAdapter = MostPlayedAdapter(
             getPlayCount = { path -> viewModel.getPlayCount(path) },
-            onSongClick = { song, position ->
-                // 设置常听歌曲列表为当前播放列表
+            onSongClick = { _, position ->
                 val songs = viewModel.mostPlayedSongs.value ?: return@MostPlayedAdapter
                 viewModel.onPlayRequest?.invoke(songs, position)
             }
