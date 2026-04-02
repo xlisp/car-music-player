@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/surface_dark"
+    android:padding="@dimen/padding_large">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="排序方式"
+        android:textColor="@color/text_primary"
+        android:textSize="@dimen/text_title"
+        android:textStyle="bold"
+        android:layout_marginBottom="@dimen/padding_normal" />
+
+    <RadioGroup
+        android:id="@+id/rgSort"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RadioButton
+            android:id="@+id/rbTitleAsc"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="歌曲名 A-Z"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_body"
+            android:buttonTint="@color/accent" />
+
+        <RadioButton
+            android:id="@+id/rbTitleDesc"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="歌曲名 Z-A"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_body"
+            android:buttonTint="@color/accent" />
+
+        <RadioButton
+            android:id="@+id/rbArtistAsc"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="歌手 A-Z"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_body"
+            android:buttonTint="@color/accent" />
+
+        <RadioButton
+            android:id="@+id/rbArtistDesc"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="歌手 Z-A"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_body"
+            android:buttonTint="@color/accent" />
+
+        <RadioButton
+            android:id="@+id/rbDateNewest"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="最新添加"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_body"
+            android:buttonTint="@color/accent"
+            android:checked="true" />
+
+        <RadioButton
+            android:id="@+id/rbDateOldest"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="最早添加"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_body"
+            android:buttonTint="@color/accent" />
+
+        <RadioButton
+            android:id="@+id/rbDurationShort"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="时长 短→长"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_body"
+            android:buttonTint="@color/accent" />
+
+        <RadioButton
+            android:id="@+id/rbDurationLong"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="时长 长→短"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_body"
+            android:buttonTint="@color/accent" />
+    </RadioGroup>
+</LinearLayout>

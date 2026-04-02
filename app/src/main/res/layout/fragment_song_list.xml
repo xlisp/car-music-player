@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/padding_normal">
+
+    <!-- 顶部导航标签 -->
+    <LinearLayout
+        android:id="@+id/tabBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/padding_small">
+
+        <TextView
+            android:id="@+id/tabSongs"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="@string/tab_songs"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_caption"
+            android:background="@drawable/bg_tab_selected"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:gravity="center"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/tabArtists"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="@string/tab_artists"
+            android:textColor="@color/text_secondary"
+            android:textSize="@dimen/text_caption"
+            android:background="@drawable/bg_tab_unselected"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:gravity="center"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/tabCategories"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="@string/tab_categories"
+            android:textColor="@color/text_secondary"
+            android:textSize="@dimen/text_caption"
+            android:background="@drawable/bg_tab_unselected"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:gravity="center" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <!-- 搜索按钮 -->
+        <ImageButton
+            android:id="@+id/btnSearch"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_search"
+            android:background="@drawable/bg_tab_unselected"
+            android:contentDescription="搜索"
+            android:scaleType="centerInside"
+            android:layout_marginStart="8dp" />
+
+        <!-- 排序按钮 -->
+        <ImageButton
+            android:id="@+id/btnSort"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_sort"
+            android:background="@drawable/bg_tab_unselected"
+            android:contentDescription="排序"
+            android:scaleType="centerInside"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
+
+    <!-- 搜索栏（默认隐藏） -->
+    <LinearLayout
+        android:id="@+id/searchBar"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_search_bar"
+        android:gravity="center_vertical"
+        android:visibility="gone"
+        android:layout_marginBottom="@dimen/padding_small">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_search"
+            android:contentDescription="搜索图标" />
+
+        <EditText
+            android:id="@+id/etSearch"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:hint="@string/search_hint"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_hint"
+            android:textSize="@dimen/text_body"
+            android:background="@android:color/transparent"
+            android:inputType="text"
+            android:imeOptions="actionSearch"
+            android:maxLines="1"
+            android:layout_marginStart="@dimen/padding_small" />
+
+        <ImageButton
+            android:id="@+id/btnCloseSearch"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_back"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="关闭搜索"
+            android:scaleType="centerInside" />
+    </LinearLayout>
+
+    <!-- 操作栏：歌曲数量 + 全部播放 -->
+    <LinearLayout
+        android:id="@+id/actionBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/padding_small">
+
+        <TextView
+            android:id="@+id/tvSongCount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="0 首歌曲"
+            android:textColor="@color/text_secondary"
+            android:textSize="@dimen/text_caption" />
+
+        <TextView
+            android:id="@+id/btnPlayAll"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="▶ 全部播放"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_caption"
+            android:background="@drawable/bg_play_all_btn"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:gravity="center" />
+    </LinearLayout>
+
+    <!-- 歌曲列表 -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvSongs"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="8dp" />
+
+    <!-- 空状态 -->
+    <LinearLayout
+        android:id="@+id/emptyView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/ic_music_note"
+            android:alpha="0.3"
+            android:contentDescription="无音乐" />
+
+        <TextView
+            android:id="@+id/tvEmpty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/no_songs"
+            android:textColor="@color/text_hint"
+            android:textSize="@dimen/text_body"
+            android:gravity="center"
+            android:layout_marginTop="@dimen/padding_normal" />
+    </LinearLayout>
+
+    <!-- 加载中 -->
+    <LinearLayout
+        android:id="@+id/loadingView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:indeterminateTint="@color/accent" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/scanning"
+            android:textColor="@color/text_secondary"
+            android:textSize="@dimen/text_body"
+            android:layout_marginTop="@dimen/padding_normal" />
+    </LinearLayout>
+</LinearLayout>

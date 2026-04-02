@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">车载音乐</string>
+    <string name="tab_songs">全部歌曲</string>
+    <string name="tab_artists">歌手</string>
+    <string name="tab_categories">分类</string>
+    <string name="tab_search">搜索</string>
+    <string name="search_hint">搜索歌曲名、歌手…</string>
+    <string name="no_songs">未找到音乐文件\n请插入USB设备</string>
+    <string name="scanning">正在扫描音乐…</string>
+    <string name="play_all">全部播放</string>
+    <string name="sort">排序</string>
+    <string name="unknown_artist">未知歌手</string>
+    <string name="unknown_album">未知专辑</string>
+    <string name="songs_count">%d 首歌曲</string>
+    <string name="no_search_result">没有找到匹配的歌曲</string>
+    <string name="rescan">重新扫描</string>
+</resources>

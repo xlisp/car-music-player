@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 车机大触摸目标 -->
+    <dimen name="touch_target_min">56dp</dimen>
+    <dimen name="btn_size_large">64dp</dimen>
+    <dimen name="btn_size_play">80dp</dimen>
+    <dimen name="icon_size_control">36dp</dimen>
+    <dimen name="icon_size_play">48dp</dimen>
+
+    <dimen name="text_title_large">24sp</dimen>
+    <dimen name="text_title">18sp</dimen>
+    <dimen name="text_body">16sp</dimen>
+    <dimen name="text_caption">14sp</dimen>
+    <dimen name="text_small">12sp</dimen>
+
+    <dimen name="padding_large">24dp</dimen>
+    <dimen name="padding_normal">16dp</dimen>
+    <dimen name="padding_small">8dp</dimen>
+    <dimen name="padding_tiny">4dp</dimen>
+
+    <dimen name="corner_radius">12dp</dimen>
+    <dimen name="corner_radius_small">8dp</dimen>
+
+    <dimen name="player_panel_width">380dp</dimen>
+    <dimen name="song_item_height">64dp</dimen>
+    <dimen name="artist_item_height">72dp</dimen>
+    <dimen name="category_card_height">100dp</dimen>
+</resources>

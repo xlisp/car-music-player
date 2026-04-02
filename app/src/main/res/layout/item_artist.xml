@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/artist_item_height"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="@dimen/padding_normal"
+    android:paddingEnd="@dimen/padding_normal"
+    android:background="?attr/selectableItemBackground">
+
+    <!-- 歌手头像占位 -->
+    <FrameLayout
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_category_card">
+
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_person"
+            android:contentDescription="歌手头像" />
+    </FrameLayout>
+
+    <!-- 歌手信息 -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginStart="@dimen/padding_normal">
+
+        <TextView
+            android:id="@+id/tvArtistName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="歌手"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_body"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/tvSongCount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="0 首歌曲"
+            android:textColor="@color/text_secondary"
+            android:textSize="@dimen/text_small"
+            android:layout_marginTop="2dp" />
+    </LinearLayout>
+
+    <!-- 全部播放按钮 -->
+    <TextView
+        android:id="@+id/btnPlayArtist"
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"
+        android:text="播放全部"
+        android:textColor="@color/text_primary"
+        android:textSize="@dimen/text_small"
+        android:background="@drawable/bg_play_all_btn"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:gravity="center" />
+</LinearLayout>
