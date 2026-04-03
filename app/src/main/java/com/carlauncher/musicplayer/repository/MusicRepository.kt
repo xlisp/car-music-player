@@ -16,6 +16,28 @@ class MusicRepository(private val context: Context) {
 
     private var allSongs = mutableListOf<Song>()
 
+    /**
+     * 修复中文MP3文件中GBK/GB2312编码的ID3标签被误读为UTF-8的问题
+     */
+    private fun fixEncoding(text: String?): String? {
+        if (text == null) return null
+
+        // 已包含中文字符或纯ASCII，无需修复
+        if (text.all { it.code <= 0x7F } || text.any { it.code in 0x4E00..0x9FFF }) return text
+
+        // 包含替换字符，无法恢复
+        if ('\uFFFD' in text) return null
+
+        // 尝试将误读的UTF-8还原为GBK解码
+        return try {
+            val bytes = text.toByteArray(Charsets.ISO_8859_1)
+            val decoded = String(bytes, charset("GBK"))
+            if (decoded.any { it.code in 0x4E00..0x9FFF }) decoded else text
+        } catch (e: Exception) {
+            text
+        }
+    }
+
     fun getAllSongs(): List<Song> = allSongs.toList()
 
     /**
@@ -84,9 +106,9 @@ class MusicRepository(private val context: Context) {
 
                 val song = Song(
                     id = id,
-                    title = cursor.getString(titleCol) ?: File(path).nameWithoutExtension,
-                    artist = cursor.getString(artistCol) ?: "未知歌手",
-                    album = cursor.getString(albumCol) ?: "未知专辑",
+                    title = fixEncoding(cursor.getString(titleCol)) ?: File(path).nameWithoutExtension,
+                    artist = fixEncoding(cursor.getString(artistCol)) ?: "未知歌手",
+                    album = fixEncoding(cursor.getString(albumCol)) ?: "未知专辑",
                     duration = cursor.getLong(durationCol),
                     uri = Uri.fromFile(File(path)),
                     path = path,
@@ -181,11 +203,11 @@ class MusicRepository(private val context: Context) {
             val retriever = MediaMetadataRetriever()
             retriever.setDataSource(file.absolutePath)
 
-            val title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
+            val title = fixEncoding(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE))
                 ?: file.nameWithoutExtension
-            val artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
+            val artist = fixEncoding(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST))
                 ?: "未知歌手"
-            val album = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)
+            val album = fixEncoding(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM))
                 ?: "未知专辑"
             val duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
                 ?.toLongOrNull() ?: 0L

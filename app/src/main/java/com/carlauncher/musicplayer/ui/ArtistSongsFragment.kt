@@ -51,8 +51,13 @@ class ArtistSongsFragment : Fragment() {
 
         tvTitle.text = name
 
-        songAdapter = SongAdapter { song, position ->
-            viewModel.playSong(song, position)
+        songAdapter = SongAdapter { _, position ->
+            val songs = if (isCategory) {
+                viewModel.categorySongs.value
+            } else {
+                viewModel.artistSongs.value
+            } ?: return@SongAdapter
+            viewModel.onPlayRequest?.invoke(songs, position)
         }
 
         rvSongs.layoutManager = LinearLayoutManager(context)
