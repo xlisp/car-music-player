@@ -250,15 +250,18 @@ class MusicPlayerService : Service(), MediaPlayer.OnCompletionListener,
             mp?.start()
             onPlayStateChanged?.invoke(true)
             updateNotification()
+            // 歌曲开始播放时就记录历史，而不是仅在播完时记录
+            currentSong?.let {
+                playHistoryManager.recordPlay(it)
+                onPlayHistoryUpdated?.invoke()
+            }
         }
     }
 
     override fun onCompletion(mp: MediaPlayer?) {
-        // 记录播放完成，用于推荐和历史统计
+        // 播放完成时仅更新推荐引擎（播放历史已在onPrepared中记录）
         currentSong?.let {
             recommendationEngine?.recordPlay(it)
-            playHistoryManager.recordPlay(it)
-            onPlayHistoryUpdated?.invoke()
         }
         playNext()
     }

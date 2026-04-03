@@ -52,7 +52,7 @@ class PlayHistoryManager(context: Context) {
     /**
      * 获取播放次数最多的歌曲路径列表（降序）
      */
-    fun getMostPlayedPaths(minPlayCount: Int = 2): List<Pair<String, Int>> {
+    fun getMostPlayedPaths(minPlayCount: Int = 1): List<Pair<String, Int>> {
         return records.values
             .filter { it.playCount >= minPlayCount }
             .sortedByDescending { it.playCount }
@@ -74,7 +74,7 @@ class PlayHistoryManager(context: Context) {
     /**
      * 从已扫描的歌曲列表中筛选出常听歌曲，按播放次数降序
      */
-    fun getMostPlayedSongs(allSongs: List<Song>, minPlayCount: Int = 2): List<Song> {
+    fun getMostPlayedSongs(allSongs: List<Song>, minPlayCount: Int = 1): List<Song> {
         val pathToCount = records.values
             .filter { it.playCount >= minPlayCount }
             .associate { it.path to it.playCount }

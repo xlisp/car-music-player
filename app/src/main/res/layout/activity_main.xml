@@ -75,10 +75,10 @@
                 android:id="@+id/seekBar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:progressDrawable="@android:drawable/progress_horizontal"
-                android:thumbTint="@color/accent"
-                android:progressTint="@color/progress_fill"
-                android:progressBackgroundTint="@color/progress_bg"
+                android:progressDrawable="@drawable/bg_seekbar_progress"
+                android:thumb="@drawable/bg_seekbar_thumb"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
                 android:max="100" />
 
             <LinearLayout

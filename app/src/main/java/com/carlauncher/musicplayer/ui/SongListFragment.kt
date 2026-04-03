@@ -167,6 +167,10 @@ class SongListFragment : Fragment() {
     private fun switchTab(tab: Tab) {
         currentTab = tab
 
+        // 重置列表和空视图状态，防止上一个tab的状态残留
+        rvSongs.visibility = View.VISIBLE
+        emptyView.visibility = View.GONE
+
         allTabs.forEach {
             it.setBackgroundResource(R.drawable.bg_tab_unselected)
             it.setTextColor(requireContext().getColor(R.color.text_secondary))
@@ -542,12 +546,16 @@ class SongListFragment : Fragment() {
         viewModel.artists.observe(viewLifecycleOwner) { artists ->
             if (currentTab == Tab.ARTISTS) {
                 artistAdapter.submitList(artists)
+                rvSongs.visibility = if (artists.isNotEmpty()) View.VISIBLE else View.GONE
+                emptyView.visibility = if (artists.isEmpty() && !viewModel.isLoading.value!!) View.VISIBLE else View.GONE
             }
         }
 
         viewModel.categories.observe(viewLifecycleOwner) { categories ->
             if (currentTab == Tab.CATEGORIES) {
                 categoryAdapter.submitList(categories)
+                rvSongs.visibility = if (categories.isNotEmpty()) View.VISIBLE else View.GONE
+                emptyView.visibility = if (categories.isEmpty() && !viewModel.isLoading.value!!) View.VISIBLE else View.GONE
             }
         }
 
