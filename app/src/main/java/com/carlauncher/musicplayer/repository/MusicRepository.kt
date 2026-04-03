@@ -10,6 +10,7 @@ import com.carlauncher.musicplayer.model.Album
 import com.carlauncher.musicplayer.model.Artist
 import com.carlauncher.musicplayer.model.MusicCategory
 import com.carlauncher.musicplayer.model.Song
+import com.carlauncher.musicplayer.util.PinyinHelper
 import java.io.File
 
 class MusicRepository(private val context: Context) {
@@ -245,7 +246,9 @@ class MusicRepository(private val context: Context) {
         return allSongs.filter {
             it.title.lowercase().contains(q) ||
             it.artist.lowercase().contains(q) ||
-            it.album.lowercase().contains(q)
+            it.album.lowercase().contains(q) ||
+            PinyinHelper.matchesPinyin(it.title, q) ||
+            PinyinHelper.matchesPinyin(it.artist, q)
         }
     }
 
