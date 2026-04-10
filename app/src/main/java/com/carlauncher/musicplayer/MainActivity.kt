@@ -69,7 +69,7 @@ class MainActivity : AppCompatActivity() {
     ) { permissions ->
         val allGranted = permissions.values.all { it }
         if (allGranted) {
-            viewModel.scanMusic()
+            viewModel.loadMusic()
         } else {
             Toast.makeText(this, "需要存储权限才能读取音乐文件", Toast.LENGTH_LONG).show()
         }
@@ -137,7 +137,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnRefresh.setOnClickListener {
-            viewModel.scanMusic()
+            viewModel.forceScanMusic()
             Toast.makeText(this, "正在重新扫描…", Toast.LENGTH_SHORT).show()
         }
 
@@ -258,7 +258,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (permissions.isEmpty()) {
-            viewModel.scanMusic()
+            viewModel.loadMusic()
         } else {
             permissionLauncher.launch(permissions.toTypedArray())
         }

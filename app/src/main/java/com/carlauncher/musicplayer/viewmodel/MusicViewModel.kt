@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.carlauncher.musicplayer.model.*
 import com.carlauncher.musicplayer.repository.MusicRepository
 import com.carlauncher.musicplayer.repository.PlayHistoryManager
+import com.carlauncher.musicplayer.util.PinyinHelper
 import com.carlauncher.musicplayer.db.TodoEntity
 import com.carlauncher.musicplayer.repository.PlaylistRepository
 import com.carlauncher.musicplayer.repository.TodoRepository
@@ -85,9 +86,34 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     var onPlayModeChanged: ((PlayMode) -> Unit)? = null
 
     /**
-     * 扫描音乐
+     * 从缓存加载歌曲（快速启动），如果没有缓存则自动扫描
      */
-    fun scanMusic() {
+    fun loadMusic() {
+        _isLoading.value = true
+        viewModelScope.launch {
+            // 先加载拼音缓存
+            withContext(Dispatchers.IO) {
+                PinyinHelper.loadCacheFromDisk(getApplication())
+            }
+            // 尝试从缓存加载
+            val cached = withContext(Dispatchers.IO) {
+                repository.loadFromCache()
+            }
+            if (cached != null) {
+                _allSongs.value = cached
+                applyFilterAndSort()
+                _isLoading.value = false
+            } else {
+                // 没有缓存，执行完整扫描
+                forceScanMusic()
+            }
+        }
+    }
+
+    /**
+     * 强制重新扫描音乐（忽略缓存）
+     */
+    fun forceScanMusic() {
         _isLoading.value = true
         viewModelScope.launch {
             val songs = withContext(Dispatchers.IO) {
@@ -96,7 +122,20 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
             _allSongs.value = songs
             applyFilterAndSort()
             _isLoading.value = false
+            // 后台预热并保存拼音缓存
+            withContext(Dispatchers.IO) {
+                val texts = songs.flatMap { listOf(it.title, it.artist) }
+                PinyinHelper.preWarm(texts)
+                PinyinHelper.saveCacheToDisk(getApplication())
+            }
         }
+    }
+
+    /**
+     * 扫描音乐（兼容旧调用）
+     */
+    fun scanMusic() {
+        forceScanMusic()
     }
 
     /**

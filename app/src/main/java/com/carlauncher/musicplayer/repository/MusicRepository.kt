@@ -16,6 +16,7 @@ import java.io.File
 class MusicRepository(private val context: Context) {
 
     private var allSongs = mutableListOf<Song>()
+    val cacheManager = MusicCacheManager(context)
 
     /**
      * 修复中文MP3文件中GBK/GB2312编码的ID3标签被误读为UTF-8的问题
@@ -42,6 +43,18 @@ class MusicRepository(private val context: Context) {
     fun getAllSongs(): List<Song> = allSongs.toList()
 
     /**
+     * 从缓存加载歌曲（不扫描磁盘）
+     */
+    fun loadFromCache(): List<Song>? {
+        val cached = cacheManager.loadSongs()
+        if (cached != null && cached.isNotEmpty()) {
+            allSongs = cached.toMutableList()
+            return allSongs.toList()
+        }
+        return null
+    }
+
+    /**
      * 扫描所有存储设备上的音乐文件（包括U盘）
      */
     fun scanMusic(): List<Song> {
@@ -62,6 +75,9 @@ class MusicRepository(private val context: Context) {
             if (song.size <= 0) true
             else seenSizes.add(song.size)
         }.toMutableList()
+
+        // 保存到缓存
+        cacheManager.saveSongs(allSongs)
 
         return allSongs.toList()
     }

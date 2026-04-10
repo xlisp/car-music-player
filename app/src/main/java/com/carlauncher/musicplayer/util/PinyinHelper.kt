@@ -1,6 +1,10 @@
 package com.carlauncher.musicplayer.util
 
+import android.content.Context
 import android.icu.text.Transliterator
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import java.io.File
 
 object PinyinHelper {
 
@@ -10,6 +14,47 @@ object PinyinHelper {
 
     private val pinyinCache = HashMap<String, String>()
     private val initialsCache = HashMap<String, String>()
+    private val gson = Gson()
+
+    /**
+     * 从磁盘加载拼音缓存
+     */
+    fun loadCacheFromDisk(context: Context) {
+        try {
+            val pinyinFile = File(context.filesDir, "pinyin_cache.json")
+            val initialsFile = File(context.filesDir, "pinyin_initials_cache.json")
+            if (pinyinFile.exists()) {
+                val type = object : TypeToken<HashMap<String, String>>() {}.type
+                val loaded: HashMap<String, String>? = gson.fromJson(pinyinFile.readText(), type)
+                if (loaded != null) pinyinCache.putAll(loaded)
+            }
+            if (initialsFile.exists()) {
+                val type = object : TypeToken<HashMap<String, String>>() {}.type
+                val loaded: HashMap<String, String>? = gson.fromJson(initialsFile.readText(), type)
+                if (loaded != null) initialsCache.putAll(loaded)
+            }
+        } catch (_: Exception) {}
+    }
+
+    /**
+     * 将拼音缓存保存到磁盘
+     */
+    fun saveCacheToDisk(context: Context) {
+        try {
+            File(context.filesDir, "pinyin_cache.json").writeText(gson.toJson(pinyinCache))
+            File(context.filesDir, "pinyin_initials_cache.json").writeText(gson.toJson(initialsCache))
+        } catch (_: Exception) {}
+    }
+
+    /**
+     * 预热拼音缓存：为所有文本预计算拼音
+     */
+    fun preWarm(texts: List<String>) {
+        for (text in texts) {
+            getPinyin(text)
+            getPinyinInitials(text)
+        }
+    }
 
     /**
      * 获取中文文本的完整拼音（无空格）
